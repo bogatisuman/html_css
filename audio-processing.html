@@ -1,0 +1,38 @@
+<button id="triggerAudio" onclick=initAudioContext()> Trigger Audio </button>
+<script>
+
+let AudioContext; 
+let context;
+function initAudioContext() {
+	AudioContext = window.AudioContext || window.webkitAudioContext;
+	context = new AudioContext();
+	getStream();
+}
+
+function maniPulateStreamWithFallback(stream) {
+	const audioInput = context.createMediaStreamSource(stream);
+	const bufferSize = 4096;
+	
+	const audioCreatorNode = context.createScriptProcessor(bufferSize, 1, 1);
+	audioCreatorNode.onaudioprocess = recorderProcessFallback;
+	
+	
+	const filter = context.createBiquadFilter();
+	filter.type = 'lowpass';
+	filter.frequency.value = 2000;
+
+	audioInput.connect(filter);
+	filter.connect(audioCreatorNode);
+	audioCreatorNode.connect(context.destination);
+}
+
+function recorderProcessFallback(e) {
+	const data = e.inputBuffer.getChannelData(0)
+}
+
+async function getStream(){
+	const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false})
+	maniPulateStreamWithFallback(stream);
+}
+
+</script>
